@@ -1,8 +1,5 @@
 const express = require("express");
 const bookController = require("../controllers/bookController");
-const BookValidator = require("../middlewares/bookValidator");
-const LendValidator = require("../middlewares/lendValidator");
-
 
 const router = express.Router();
 
@@ -117,7 +114,7 @@ const router = express.Router();
  *          description: Unexpected error occurred
  */
 
-router.get("/", bookController.getAll);
+router.get("/", bookController.getAllBooks);
 
 /**
  * @swagger
@@ -140,7 +137,7 @@ router.get("/", bookController.getAll);
  *          description: Unexpected error occurred
  */
 
-router.get("/:id", bookController.getById);
+router.get("/:id", bookController.getBookById);
 
 /**
  * @swagger
@@ -162,7 +159,7 @@ router.get("/:id", bookController.getById);
  *          description: Missing field or Unexpected error occurred
  */
 
-router.post("/", BookValidator.validateSchema, bookController.add);
+router.post("/", bookController.createBook);
 
 /**
  * @swagger
@@ -189,7 +186,7 @@ router.post("/", BookValidator.validateSchema, bookController.add);
  *          description: Missing field or Unexpected error occurred
  */
 
-router.put("/:id", BookValidator.validateSchema, bookController.update);
+router.put("/:id", bookController.updateBook);
 
 /**
  * @swagger
@@ -212,61 +209,7 @@ router.put("/:id", BookValidator.validateSchema, bookController.update);
  *          description: Unexpected error occurred
  */
 
-router.delete("/:id", bookController.delete);
-
-/**
- * @swagger
- * path:
- *  /api/book/lend/{id}:
- *    put:
- *      tags: [Crud Books]
- *      summary: Change the status from isBorrowed to true and add the name and cell phone of the person to whom it was loaned
- *      parameters:
- *        - name: id
- *          required: true
- *          type: string
- *          in: path
- *      requestBody:
- *        required: true
- *        content:
- *              application/json:
- *                schema:
- *                  $ref: '#/definitions/Person'
- *      responses:
- *        "200":
- *          description: Book borrowed successfully!
- *        "400":
- *          description: Can not borrow book cause it already is borrowed or missing field
- *        "500":
- *          description: Book not found or Unexpected error
- */
-
-router.put("/lend/:id", LendValidator.validateSchema, bookController.lend);
-
-/**
- * @swagger
- * path:
- *  /api/book/recover/{id}:
- *    put:
- *      tags: [Crud Books]
- *      summary: Retrieve book, that is, it sets the isBorrowed attribute to false indicating that the borrowed book has been returned
- *      parameters:
- *        - name: id
- *          required: true
- *          type: string
- *          in: path
- *      requestBody:
- *        required: false
- *      responses:
- *        "200":
- *          description: Book recovered successfully
- *        "400":
- *          description: Can not recover book cause it already is recovered
- *        "500":
- *          description: Book not found or Unexpected error
- */
-
-router.put("/recover/:id", bookController.recover);
+router.delete("/:id", bookController.deleteBook);
 
 module.exports = router;
 // router.get("*", bookController.notFound);

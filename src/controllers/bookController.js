@@ -1,101 +1,109 @@
-const Topic = require("../models/Book");
-const Book = require("../models/Book");
+const { firestoreRef } = require('../drivers/firestore');
+
+const collectionName = 'user';
+
+const getAllBooks = (req, res) => {
+  if (firestoreRef) {
+    return firestoreRef.collection(collectionName)
+      .get()
+      .then((snapshot) => {
+        const items = [];
+        snapshot.forEach((doc) => {
+          items.push({
+            id: doc.id,
+            data: doc.data(),
+          });
+        });
+        return res.send({ success: true, data: items });
+      })
+      .catch(
+        (err) => res.status(500).send({ err, message: 'Error getting data from firestore' })
+      );
+  } else {
+    return res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
+  }
+};
+
+const getBookById = (req, res) => {
+  if (firestoreRef) {
+    return firestoreRef.collection(collectionName)
+      .doc(req.params.id)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const data = {
+            ...doc.data(),
+            id: req.params.id,
+          };
+          return res.send({ success: true, data });
+        }
+        return res.status(500)
+          .send({ err, message: `Document with id ${req.params.id} does not exist` });
+      });
+  } else {
+    return res.status(500).send({ success: false, message: 'Couldn\'t connect to database'} );
+  }
+};
+
+const createBook = async (req, res) => {
+  if (firestoreRef) {
+    const doc = firestoreRef.collection(collectionName)
+      .doc();
+    try {
+      const creationDate = new Date();
+      await doc.set({ ...req.body, creationDate });
+      return res.send({ success: true, data: { doc: { id: doc.id, data: req.body }} });
+    } catch (err) {
+      return res.status(500).send({ err, message: 'Error saving data to firestore' });
+    }
+  } else {
+    return res.status(500).send({ success: false, error: 'Couldn\'t connect to database' });
+  }
+};
+
+const updateBook = async (req, res) => {
+  if (firestoreRef) {
+    const doc = firestoreRef.collection(collectionName).doc(req.params.id);
+    if (doc) {
+      try {
+        await doc.set(req.body);
+        return res.send({ success: true, data: { id: doc.id, data: req.body }});
+      } catch (err) {
+        return res.status(500).send({ err, message: 'Error saving data to firestore' });
+      }
+    } else {
+      return res.status(500)
+        .send({ succes: false, message: `Document with id ${req.params.id} does not exist` });
+    }
+  } else {
+    return res.status(500).send({ sucess: false, message: 'Couldn\'t connect to database' });
+  }
+};
+
+const deleteBook = async (req, res) => {
+  if (firestoreRef) {
+    const doc = firestoreRef.collection(collectionName)
+      .doc(req.params.id);
+    if (doc) {
+      try {
+        await doc.delete();
+        return res.send({ success: true }); 
+      } catch (err) {
+        return res.status(500).send({ err, message: 'Error deleting data from firestore' });
+      }
+    } else {
+      return res.status(500)
+        .send({ success: false, message: `Document with id ${req.params.id} does not exist` });
+    }
+  } else {
+    return res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
+  }
+};
 
 module.exports = {
-  add: async (req, res) => {
-    const { title, cover, description, author, gender, editorial } = req.body;
-    const newBook = new Book({
-      title,
-      cover,
-      description,
-      author,
-      gender,
-      editorial,
-    });
-    try {
-      let result = await newBook.save();
-      res.status(200).json({ message: "Add book", result });
-    } catch (error) {
-      res.status(400).json({ error });
-    }
-  },
-  getById: async (req, res) => {
-    const { id } = req.params;
-    try {
-      const book = await Book.findById(id);
-      if (!(book.deleted === true)) return res.status(200).json(book);
-      res.status(200).json({ message: `Book with id: ${id} - not found` });
-    } catch (err) {
-      res.status(500).json({ message: "Unexpected error", err });
-    }
-  },
-  getAll: async (req, res) => {
-    try {
-      let books = await Book.find();
-      res.status(200).json({ message: "Get all books", books });
-    } catch (error) {
-      res.status(400).json({ error });
-    }
-  },
-  update: async (req, res) => {
-    const { id } = req.params;
-    try {
-      const newBook = { ...req.body };
-      await Book.findByIdAndUpdate(id, newBook);
-      res.status(200).json({ message: "Book updated successfully", newBook });
-    } catch (err) {
-      res.status(500).json({ message: "Unexpected error", err });
-    }
-  },
-  delete: async (req, res) => {
-    const { id } = req.params;
-    try {
-      let deletedBook = await Book.findByIdAndDelete(id);
-      res.status(200).json({ message: "Delete book", deletedBook });
-    } catch (error) {
-      res.status(500).json({ error });
-    }
-  },
-  lend: async (req, res) => {
-    const { id } = req.params;
-    const { name, cellphone } = req.body;
-    try {
-      let book = await Book.findById(id);
-      if (!book.isBorrowed) {
-        book.lendto.push({ name, cellphone });
-        book.isBorrowed = true;
-        let result = await book.save();
-        res.status(200).json({ message: "Book borrowed successfully", result });
-      } else {
-        res
-          .status(400)
-          .json({
-            message: "Can not borrow book cause it already is borrowed",book
-          });
-      }
-    } catch (err) {
-      res.status(500).json({ message: "Unexpected error", err });
-    }
-  },
-  recover: async (req, res) => {
-    const { id } = req.params;
-    try {
-      let book = await Book.findById(id);
-      if (book.isBorrowed) {
-        book.isBorrowed = false;
-        let result = await book.save();
-        res
-          .status(200)
-          .json({ message: "Book recovered successfully", result });
-      } else {
-        res
-          .status(400)
-          .json({
-            message: "Can not recover book cause it already is recovered",book
-          });
-      }
-    } catch (err) {
-      res.status(500).json({ message: "Unexpected error", err });
-    }
-  },
+  getAllBooks,
+  getBookById,
+  createBook,
+  updateBook,
+  deleteBook,
 };
