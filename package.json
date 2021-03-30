@@ -23,5 +23,13 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HugoTalledos/idi-red-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HugoTalledos/idi-red-backend/issues"
+  },
+  "homepage": "https://github.com/HugoTalledos/idi-red-backend#readme"
 }
