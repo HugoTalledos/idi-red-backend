@@ -94,7 +94,7 @@ const updateDocument = async (req, res) => {
       .doc(documentId);
     if (doc) {
       try {
-        await doc.set(req.body);
+        await doc.update({ updateDate: new Date(), ...req.body });
         return res.send({ success: true, data: { id: doc.id, data: req.body } });
       } catch (err) {
         return res.status(500).send({ err, message: 'Error saving data to firestore' });

@@ -66,7 +66,7 @@ const updateUser = async (req, res) => {
     const doc = firestoreRef.collection(collectionName).doc(req.params.userId);
     if (doc) {
       try {
-        await doc.set(req.body);
+        await doc.set({ updateDate: new Date(), ...req.body });
         return res.send({ success: true, data: { id: doc.id, data: req.body } });
       } catch (err) {
         return res.status(500).send({ success: false, message: 'Error saving data to firestore' });
