@@ -35,7 +35,9 @@ const getAllDocuments = async (req, res) => {
         });
         return items;
       })
-      .catch(res.status(500).send({ success: false, message: 'Error getting user data from firestore' }));
+      .catch((err) => 
+        res.status(500).send({ err, success: false, message: 'Error getting user data from firestore' })
+      );
     const promises = [];
     usersList.forEach((user) => {
       const documentsUser = getDocumentsByUserId({ params: { userId: user, local: true } });
@@ -46,12 +48,13 @@ const getAllDocuments = async (req, res) => {
       .then((documents) => {
         const items = [];
         documents.forEach((doc) => {
-          console.log(doc);
           items.push(...doc)
         })
         res.send({ success: true, data: items })
       })
-      .catch(res.status(500).send({ success: false, message: 'Error getting documents from firestore' }));
+      .catch((err) => 
+        res.status(500).send({ err, success: false, message: 'Error getting documents from firestore' })
+      );
   } else {
     return res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
   }
@@ -76,7 +79,7 @@ const getDocumentsByUserId = async (req, res) => {
       })
       .catch(err => {
         return local ? {} : res.status(500)
-          .send({ sucess: false, message: `Document with id ${req.params.id} does not exist` });
+          .send({ err, sucess: false, message: `Document with id ${req.params.id} does not exist` });
       });
   } else {
     return local ? {} : res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
@@ -117,7 +120,7 @@ const deleteDocument = async (req, res) => {
         await doc.delete();
         return res.send({ success: true });
       } catch (err) {
-        return res.status(500).send({ err, message: 'Error deleting data from firestore' });
+        return res.status(500).send({ err, success: false, message: 'Error deleting data from firestore' });
       }
     } else {
       return res.status(400)

@@ -58,7 +58,7 @@ const router = express.Router();
  *  /api/requests/{userId}/{requestType}:
  *    get:
  *      tags: [Requests]
- *      summary: Get all requests filtered by inbound and outbound or all if not specified for a specific user
+ *      summary: Get all requests filtered by [i]nbound, [o]utbound or all if not specified
  *      parameters:
  *        - name: userId
  *          required: true
@@ -82,39 +82,16 @@ router.get("/:userId/:requestType", requestController.getAllRequests);
 /**
  * @swagger
  * path:
- *  /api/documents/{userId}:
- *    get:
- *      tags: [Documents]
- *      summary: Get documents from a specific user
- *      parameters:
- *        - name: userId
- *          required: true
- *          type: string
- *          in: path
- *      requestBody:
- *        required: false
- *      responses:
- *        "200":
- *          description: Return documents from a specific user
- *        "400":
- *          description: Unexpected error occurred
- */
-
-router.get("/:userId", requestController.getDocumentsByUserId);
-
-/**
- * @swagger
- * path:
- *  /api/documents/{userId}/{documentId}:
+ *  /api/requests/{userId}/{requestId}:
  *    put:
- *      tags: [Documents]
- *      summary: Update information of a specific document
+ *      tags: [Requests]
+ *      summary: Update information of a specific request
  *      parameters:
  *        - name: userId
  *          required: true
  *          type: string
  *          in: path
- *        - name: documentId
+ *        - name: requestId
  *          required: true
  *          type: string
  *          in: path
@@ -123,31 +100,31 @@ router.get("/:userId", requestController.getDocumentsByUserId);
  *        content:
  *              application/json:
  *                schema:
- *                  $ref: '#/definitions/Document'
+ *                  $ref: '#/definitions/Request'
  *      responses:
  *        "200":
- *          description: Document has been updated succesfully!
+ *          description: Request has been updated succesfully!
  *        "400":
- *          description: Document with id ${documentId} does not exist or user with id ${userId} does not exist
+ *          description: Request with id ${requestId} does not exist or user with id ${userId} does not exist
  *        "500":
  *          description: Unexpected error occurred
  */
 
-router.put("/:userId/:documentId", requestController.updateDocument);
+router.put("/:userId/:requestId", requestController.updateRequest);
 
 /**
  * @swagger
  * path:
- *  /api/documents/{userId}/{documentId}:
+ *  /api/requests/{userId}/{requestId}:
  *    delete:
- *      tags: [Documents]
- *      summary: Delete document of a a specific user
+ *      tags: [Requests]
+ *      summary: Delete request of a specific user
  *      parameters:
  *        - name: userId
  *          required: true
  *          type: string
  *          in: path
- *        - name: documentId
+ *        - name: requestId
  *          required: true
  *          type: string
  *          in: path
@@ -155,13 +132,13 @@ router.put("/:userId/:documentId", requestController.updateDocument);
  *        required: false
  *      responses:
  *        "200":
- *          description: User has been deleted succesfully!
+ *          description: Request has been deleted succesfully!
  *        "400":
- *          description: Document with id ${documentId} does not exist or user with id ${userId} does not exist
+ *          description: Request with id ${requestId} does not exist or user with id ${userId} does not exist
  *        "500":
  *          description: Unexpected error occurred
  */
 
-router.delete("/:userId/:documentId", requestController.deleteDocument);
+router.delete("/:userId/:requestId", requestController.deleteRequest);
 
 module.exports = router;

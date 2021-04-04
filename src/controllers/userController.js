@@ -16,7 +16,9 @@ const getAllUsers = (req, res) => {
         });
         return res.send({ success: true, data: items });
       })
-      .catch(res.status(500).send({ success: false, message: 'Error getting data from firestore' }));
+      .catch(
+        (err) => res.status(500).send({ err, success: false, message: 'Error getting data from firestore' })
+      );
   } else {
     return res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
   }
@@ -87,7 +89,7 @@ const deleteUser = async (req, res) => {
         await doc.delete();
         return res.send({ success: true });
       } catch (err) {
-        return res.status(500).send({ success: false, message: 'Error deleting data from firestore' });
+        return res.status(500).send({ err, success: false, message: 'Error deleting data from firestore' });
       }
     } else {
       return res.status(500)
