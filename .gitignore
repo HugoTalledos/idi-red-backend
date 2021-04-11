@@ -1,10 +1,10 @@
 /node_modules
 src/config/env/*.env
 .vscode
-
+.codec-idired-config.json
 # Created by https://www.toptal.com/developers/gitignore/api/node,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,visualstudiocode
-
+#prueba
 ### Node ###
 # Logs
 logs
