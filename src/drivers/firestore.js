@@ -16,7 +16,6 @@ try {
 let app;
 let firestoreRef;
 
-
 try {
   app = admin.initializeApp({
     credential: remoteEnvs.includes(env)
