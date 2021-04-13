@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 require('./config/env/config');
 
 const docsRoutes = require('./routes/swagger');
@@ -12,6 +13,7 @@ const userRoutes = require('./routes/user_routes');
 //  Settings
 app.set('PORT', process.env.PORT);
 app.use(express.json());
+app.use(cors());
 
 app.use('/api/docs', docsRoutes);
 app.use('/api/book', bookRouter);
