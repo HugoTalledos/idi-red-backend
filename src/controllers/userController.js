@@ -37,8 +37,7 @@ const getUserById = (req, res) => {
           };
           return res.send({ success: true, data });
         }
-        return res.status(500)
-          .send({ success: false, message: `Document with id ${req.params.userId} does not exist` });
+        return res.send({ success: false, message: `Document with id ${req.params.userId} does not exist` });
       });
   } else {
     return res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
@@ -48,23 +47,15 @@ const getUserById = (req, res) => {
 const createUser = async (req, res) => {
   const { userId } = req.body
   if (firestoreRef) {
-    const user = await firestoreRef.collection(collectionName)
-      .where('userId', '==', userId)
-      .limit(1)
-      .get();
-
-    if (user.size <= 0) {
-      try {
-        const doc = firestoreRef.collection(collectionName)
-        .doc();
-        const creationDate = new Date();
-        await doc.set({ ...req.body, creationDate });
-        return res.send({ success: true, data: { doc: { id: doc.id, data: req.body } } });
-      } catch (err) {
-        return res.status(500).send({ success: false, message: 'Error saving data to firestore' });
-      }
+    try {
+      const user = await firestoreRef.collection(collectionName)
+        .doc(userId);
+      const creationDate = new Date();
+      await user.set({ ...req.body, creationDate });
+      return res.send({ success: true, data: { doc: { id: user.id, data: req.body } } });
+    } catch (err) {
+      return res.status(500).send({ success: false, message: 'Error saving data to firestore' });
     }
-    return res.send({ success: true, message: 'User exists' });
   } else {
     return res.status(500).send({ success: false, error: 'Couldn\'t connect to database' });
   }
