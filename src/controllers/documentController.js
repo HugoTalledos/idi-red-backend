@@ -3,14 +3,14 @@ const { firestoreRef } = require('../drivers/firestore');
 const collectionName = 'user';
 
 const registerDocument = async (req, res) => {
-  const { userId }  = req.params;
+  const { userId } = req.params;
   if (firestoreRef) {
     const doc = firestoreRef.collection(collectionName)
       .doc(userId)
       .collection('documents')
       .doc();
     try {
-      await doc.set({ 
+      await doc.set({
         ...req.body,
         creationDate: new Date(),
         isLost: true,
@@ -24,18 +24,36 @@ const registerDocument = async (req, res) => {
   }
 };
 
+const getDocumentByDocumentNum = async (req, res) => {
+  const { documentNum } = req.params;
+  const allDocuments = await getAllDocuments({ params: { local: true } });
+  try {
+    const document = allDocuments.filter(doc => doc.documentNum === documentNum);
+    if (document.length > 0) {
+      if (document[0].isLost) {
+        res.send({ success: true, data: document[0] });
+      } else {
+        res.send({ success: true, data: null });
+      }
+    } else {
+      res.send({ success: false, message: 'Document not found' });
+    }
+  } catch (err) {
+    res.status(500).send({ success: false, error: err.message, message: 'unexpected error' });
+  }
+};
+
 const getAllDocuments = async (req, res) => {
+  const { local = false } = req.params;
   if (firestoreRef) {
     const usersList = await firestoreRef.collection(collectionName)
       .get()
       .then((snapshot) => {
         const items = [];
-        snapshot.forEach((doc) => {
-          items.push(doc.id);
-        });
+        snapshot.forEach((doc) => items.push(doc.id));
         return items;
       })
-      .catch((err) => 
+      .catch((err) =>
         res.status(500).send({ err, success: false, message: 'Error getting user data from firestore' })
       );
     const promises = [];
@@ -43,20 +61,19 @@ const getAllDocuments = async (req, res) => {
       const documentsUser = getDocumentsByUserId({ params: { userId: user, local: true } });
       promises.push(documentsUser);
     });
-
-    Promise.all(promises)
+    return Promise.all(promises)
       .then((documents) => {
         const items = [];
         documents.forEach((doc) => {
           items.push(...doc)
-        })
-        res.send({ success: true, data: items })
+        });
+        return local ? items : res.send({ success: true, data: items });
       })
-      .catch((err) => 
-        res.status(500).send({ err, success: false, message: 'Error getting documents from firestore' })
-      );
+      .catch((err) => {
+        return local ? {} : res.status(500).send({ err, success: false, message: 'Error getting documents from firestore' })
+      });
   } else {
-    return res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
+    return local ? {} : res.status(500).send({ success: false, message: 'Couldn\'t connect to database' });
   }
 };
 
@@ -134,6 +151,7 @@ const deleteDocument = async (req, res) => {
 module.exports = {
   getAllDocuments,
   getDocumentsByUserId,
+  getDocumentByDocumentNum,
   updateDocument,
   deleteDocument,
   registerDocument,

@@ -52,6 +52,29 @@ const router = express.Router();
 
  router.post("/:userId", documentController.registerDocument);
 
+ /**
+ * @swagger
+ * path:
+ *  /api/documents/searchDocument/{documentNum}:
+ *    get:
+ *      tags: [Documents]
+ *      summary: Get a specific document from its number
+ *      parameters:
+ *        - name: documentNum
+ *          required: true
+ *          type: string
+ *          in: path
+ *      requestBody:
+ *        required: false
+ *      responses:
+ *        "200":
+ *          description: Return document information!
+ *        "400":
+ *          description: Unexpected error occurred
+ */
+
+router.get("/searchDocument/:documentNum", documentController.getDocumentByDocumentNum);
+
 /**
  * @swagger
  * path:
