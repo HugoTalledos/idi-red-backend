@@ -1,10 +1,22 @@
 const { firestoreRef } = require('../drivers/firestore');
+const { sendConfirmation, sendNotification } = require('./email.js')
 
 const collectionName = 'user';
 
 const registerRequest = async (req, res) => {
   const { userId } = req.params;
+  const { aplicantEmail, aplicantName } = req.body;
   if (firestoreRef) {
+    const user = await firestoreRef.collection(collectionName)
+      .doc(userId)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          return doc.data();
+        }
+        return {};
+      });
+
     const doc = firestoreRef.collection(collectionName)
       .doc(userId)
       .collection('requests')
@@ -15,6 +27,10 @@ const registerRequest = async (req, res) => {
         creationDate: new Date(),
         active: true,
       });
+
+      await sendConfirmation(aplicantEmail, user.name); //Correo al que solicita
+      await sendNotification(user.email, { name: aplicantName, mail: aplicantEmail }); //Correo al que tiene el documento
+
       return res.send({ success: true, data: { doc: { id: doc.id, data: req.body } } });
     } catch (err) {
       return res.status(500).send({ success: false, message: 'Error saving data to firestore' });
@@ -27,7 +43,7 @@ const registerRequest = async (req, res) => {
 const getAllRequests = async (req, res) => {
   const { userId, requestType } = req.params;
   if (firestoreRef) {
-    const requestList =  await firestoreRef.collection(collectionName)
+    const requestList = await firestoreRef.collection(collectionName)
       .doc(userId)
       .collection('requests')
       .get()
@@ -41,11 +57,11 @@ const getAllRequests = async (req, res) => {
         });
         return items;
       })
-      .catch((err) => 
+      .catch((err) =>
         res.status(500).send({ err, success: false, message: 'Error getting request data from firestore' })
       );
 
-    if(requestType === ',') res.send({ success: true, data: requestList});
+    if (requestType === ',') res.send({ success: true, data: requestList });
 
     const requestFilter = requestList.filter((request) => request.requestType === requestType);
     res.send({ success: true, data: requestFilter });
